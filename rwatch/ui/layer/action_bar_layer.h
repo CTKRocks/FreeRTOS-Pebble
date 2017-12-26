@@ -1,5 +1,5 @@
 #pragma once
-/* layer.h
+/* action_bar_layer.h
  * routines for [...]
  * libRebbleOS
  *
