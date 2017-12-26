@@ -24,17 +24,17 @@ typedef struct {
 
 static Time s_last_time;
 
-void play_click_handler(ClickRecognizerRef recognizer, void *context)
+static void play_click_handler(ClickRecognizerRef recognizer, void *context)
 {
     printf("UP");
 }
 
-void pause_click_handler(ClickRecognizerRef recognizer, void *context)
+static void pause_click_handler(ClickRecognizerRef recognizer, void *context)
 {
     printf("DOWN");
 }
 
-void click_config_provider(void *context)
+static void click_config_provider(void *context)
 {
     window_single_click_subscribe(BUTTON_ID_DOWN, (ClickHandler) pause_click_handler);
     window_single_click_subscribe(BUTTON_ID_UP, (ClickHandler) play_click_handler);
