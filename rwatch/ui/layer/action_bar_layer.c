@@ -1,4 +1,4 @@
-/* layer.c
+/* action_bar_layer.c
  * routines for [...]
  * libRebbleOS
  *
