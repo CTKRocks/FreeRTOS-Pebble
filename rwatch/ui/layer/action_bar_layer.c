@@ -1,4 +1,4 @@
-/* layer.c
+/* action_bar_layer.c
  * routines for [...]
  * libRebbleOS
  *
@@ -112,7 +112,7 @@ static void draw(Layer *layer, GContext *context)
             // Draw the icon:
             GSize icon_size = action_bar->icons[i]->raw_bitmap_size;
             printf(action_bar->icons[i]);
-            graphics_draw_bitmap_in_rect_app(context, action_bar->icons[i], GRect(-full_bounds.size.w - 3, y - (increment / 2) - (icon_size.h / 2), icon_size.w, icon_size.h));
+            graphics_draw_bitmap_in_rect_app(context, action_bar->icons[i], GRect(full_bounds.size.w - icon_size.w - 2, y - (increment / 2) - (icon_size.h / 2), icon_size.w, icon_size.h));
         }
         
         y += increment;
