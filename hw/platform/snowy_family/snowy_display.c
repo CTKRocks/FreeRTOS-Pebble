@@ -17,6 +17,7 @@
 #include <stm32f4xx_spi.h>
 #include <stm32f4xx_tim.h>
 #include "stm32_power.h"
+#include "platform_config.h"
 
 #define ROW_LENGTH    DISPLAY_COLS
 #define COLUMN_LENGTH DISPLAY_ROWS
@@ -44,8 +45,8 @@ void _snowy_display_next_column(uint8_t col_index);
 void _snowy_display_init_dma(void);
 
 // pointer to the place in flash where the FPGA image resides
-extern unsigned char _binary_Resources_FPGA_4_3_snowy_dumped_bin_start;
-extern unsigned char _binary_Resources_FPGA_4_3_snowy_dumped_bin_size;
+// extern unsigned char fpga_address; // _binary_Resources_FPGA_4_3_snowy_dumped_bin_start;
+// extern unsigned char fpga_size; //binary_Resources_FPGA_4_3_snowy_dumped_bin_size;
 
 /*
  * Generic functional notes 
@@ -434,7 +435,7 @@ uint8_t _snowy_display_SPI6_send(uint8_t data)
 void _snowy_display_next_column(uint8_t col_index)
 {   
     // set the content
-    scanline_convert_column(_column_buffer, display.frame_buffer, col_index);
+    scanline_convert(_column_buffer, display.frame_buffer, col_index);
     _snowy_display_dma_send(_column_buffer, COLUMN_LENGTH);
 }
 
@@ -588,7 +589,7 @@ void _snowy_display_send_frame_slow()
     // send via standard SPI
     for(uint8_t x = 0; x < DISPLAY_COLS; x++)
     {
-        scanline_convert_column(_column_buffer, display.frame_buffer, x);
+        scanline_convert(_column_buffer, display.frame_buffer, x);
         for (uint8_t j = 0; j < DISPLAY_ROWS; j++)
             _snowy_display_SPI6_send(_column_buffer[j]);
     }   
@@ -663,12 +664,12 @@ void _snowy_display_full_init(void)
  */
 void _snowy_display_program_FPGA(void)
 {
-    unsigned char *fpga_blob = &_binary_Resources_FPGA_4_3_snowy_dumped_bin_start;
+    unsigned char *fpga_blob = DISPLAY_FPGA_ADDR;
            
     _snowy_display_cs(1);
     
     // Do this with good ol manual SPI for reliability
-    for (uint32_t i = 0; i < (uint32_t)&_binary_Resources_FPGA_4_3_snowy_dumped_bin_size; i++)
+    for (uint32_t i = 0; i < (uint32_t)DISPLAY_FPGA_SIZE; i++)
     {
         _snowy_display_SPI6_send(*(fpga_blob + i));
     }
