@@ -1,5 +1,5 @@
-/* chalk_backlight.c
- * Backlight control implementation for Pebble Time (chalk)
+/* snowy_backlight.c
+ * Backlight control implementation for Pebble Time (snowy)
  * RebbleOS
  *
  * Author: Barry Carter <barry.carter@gmail.com>
@@ -9,9 +9,9 @@
 #include "stdio.h"
 #include "string.h"
 #include "display.h"
-#include "chalk_display.h"
+#include "snowy_display.h"
 #include "backlight.h"
-#include "chalk_backlight.h"
+#include "snowy_backlight.h"
 #include "stm32_power.h"
 #include "log.h"
 #include <stm32f4xx_spi.h>
@@ -19,7 +19,7 @@
 
 /*
  * Initialise the backlight. This is set as a timer (TIM12)
- * tied to GPIO B14 on PT chalk
+ * tied to GPIO B14 on PT Snowy
  */
 void hw_backlight_init(void)
 {
@@ -92,5 +92,5 @@ void hw_backlight_set(uint16_t pwmValue)
     if (!_backlight_clocks_on)
         stm32_power_release(STM32_POWER_APB1, RCC_APB1Periph_TIM12);
     
-    DRV_LOG("backl", APP_LOG_LEVEL_DEBUG, "Backlight Set: %d", pwmValue);
+    //DRV_LOG("backl", APP_LOG_LEVEL_DEBUG, "Backlight Set: %d", pwmValue);
 }

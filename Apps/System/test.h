@@ -8,7 +8,6 @@
 
 #include "display.h"
 #include "backlight.h"
-#include "action_bar_layer.h"
 
 
 #define BTN_SELECT_PRESS 1

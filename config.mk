@@ -95,7 +95,6 @@ SRCS_all += rwatch/graphics/gbitmap.c
 SRCS_all += rwatch/graphics/graphics.c
 SRCS_all += rwatch/graphics/font_loader.c
 SRCS_all += rwatch/event/tick_timer_service.c
-SRCS_all += rwatch/ui/layer/action_bar_layer.c
 
 SRCS_all += Watchfaces/simple.c
 SRCS_all += Watchfaces/nivz.c
@@ -104,11 +103,13 @@ SRCS_all += Apps/System/systemapp.c
 SRCS_all += Apps/System/menu.c
 
 SRCS_all += Apps/System/test.c
+SRCS_all += Apps/System/notification.c
 
 include hw/chip/stm32f4xx/config.mk
 include hw/chip/stm32f2xx/config.mk
 include hw/drivers/stm32_buttons/config.mk
 include hw/drivers/stm32_power/config.mk
+include hw/platform/snowy_family/config.mk
 include hw/platform/snowy/config.mk
 include hw/platform/tintin/config.mk
 include hw/platform/chalk/config.mk
