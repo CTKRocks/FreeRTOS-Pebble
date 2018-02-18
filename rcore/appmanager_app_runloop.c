@@ -13,6 +13,7 @@ void back_long_click_handler(ClickRecognizerRef recognizer, void *context);
 void back_long_click_release_handler(ClickRecognizerRef recognizer, void *context);
 void app_select_single_click_handler(ClickRecognizerRef recognizer, void *context);
 void app_back_single_click_handler(ClickRecognizerRef recognizer, void *context);
+void watchface_down_single_click_handler(ClickRecognizerRef recognizer, void *context);
 
 static xQueueHandle _app_message_queue;
 
@@ -82,6 +83,11 @@ void app_event_loop(void)
     {
         /* Enables default closing of windows, and through that, apps */
         window_single_click_subscribe(BUTTON_ID_BACK, app_back_single_click_handler);
+    }
+    else
+    {
+        /* Enables the timeline from the watchface */
+        window_single_click_subscribe(BUTTON_ID_DOWN, watchface_down_single_click_handler);
     }
     
     window_configure(window_stack_get_top_window());
@@ -212,4 +218,11 @@ void app_back_single_click_handler(ClickRecognizerRef recognizer, void *context)
         appmanager_app_start("System");
     }
     window_dirty(true);
+}
+
+void watchface_down_single_click_handler(ClickRecognizerRef recognizer, void *context)
+{
+    KERN_LOG("face", APP_LOG_LEVEL_DEBUG, "Open the timeline");
+    // Open the timeline for today (more specifically, only future stuff)
+    appmanager_app_start("Timeline");
 }

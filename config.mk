@@ -133,6 +133,9 @@ SRCS_all += Apps/System/testapp.c
 SRCS_all += Apps/System/test.c
 SRCS_all += Apps/System/notification.c
 
+SRCS_all += Apps/System/calendar.c
+SRCS_all += Apps/System/timeline.c
+
 include hw/chip/stm32f4xx/config.mk
 include hw/chip/stm32f2xx/config.mk
 include hw/drivers/stm32_buttons/config.mk

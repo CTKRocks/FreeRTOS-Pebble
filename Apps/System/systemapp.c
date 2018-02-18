@@ -106,6 +106,7 @@ static void systemapp_window_load(Window *window)
     menu_items_add(items, MenuItem("Watchfaces", "All your faces", RESOURCE_ID_CLOCK, watch_list_item_selected));
     menu_items_add(items, MenuItem("Settings", "Move Along", RESOURCE_ID_SPANNER, test_item_selected));
     menu_items_add(items, MenuItem("Tests", NULL, RESOURCE_ID_CLOCK, run_test_item_selected));
+    menu_items_add(items, MenuItem("Calendar", NULL, RESOURCE_ID_CLOCK, app_item_selected));
     menu_items_add(items, MenuItem("RebbleOS", "... v0.0.0.1", RESOURCE_ID_SPEECH_BUBBLE, NULL));
     menu_set_items(s_menu, items);
 

@@ -135,13 +135,13 @@ void window_stack_push_configure(Window *window, bool animated)
         window->frame.origin.x = DISPLAY_COLS;
         App *app = appmanager_get_current_app();
         /* A quicky hack to determine direction of scroll
-         * If we are an app => face, then we go left
-         * Face to app => right
+         * If we are an app => face, then we go right
+         * Face to app => left
          */
         if (app->type == APP_TYPE_FACE)
-            _animation_setup(true);
-        else 
             _animation_setup(false);
+        else 
+            _animation_setup(true);
     }
     window_configure(window);
     window_dirty(true);
