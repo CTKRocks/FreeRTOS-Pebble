@@ -1,16 +1,28 @@
-/* snowy_rtc.c
- * STM32F4xx RTC implementation
+/*
+ * stm32_rtc.c
+ * Implementation of generic STM32 button HAL.
  * RebbleOS
  *
- * Author: Barry Carter <barry.carter@gmail.com>
+ * Barry Carter <barry.carter@gmail.com>
+ * Refactored by Thomas England (crc-32) <thomas.c.england@gmail.com>
+ *
  */
 
-#include "stm32f4xx.h"
-#include "stm32f4xx_rtc.h"
+#if defined(STM32F4XX)
+#    include "stm32f4xx.h"
+#elif defined(STM32F2XX)
+#    include "stm32f2xx.h"
+#    include "stm32f2xx_rtc.h"
+#    include "stm32f2xx_rcc.h"
+#    include "stm32f2xx_exti.h"
+#    include "misc.h"
+#else
+#    error "I have no idea what kind of stm32 this is; sorry"
+#endif
 #include "stdio.h"
 #include "string.h"
-#include "snowy_rtc.h"
 #include "stm32_power.h"
+#include "stm32_rtc.h"
 #include "log.h"
 #include <stdlib.h>
 #include <time.h>
@@ -19,7 +31,7 @@
 static struct tm time_now;
 
 // for the interrupts
-__IO uint32_t uwCaptureNumber = 0; 
+__IO uint32_t uwCaptureNumber = 0;
 __IO uint32_t uwPeriodValue = 0;
 uint16_t tmpCC4[2] = {0, 0};
 
@@ -27,10 +39,10 @@ void rtc_init(void)
 {
     EXTI_InitTypeDef EXTI_InitStruct;
     NVIC_InitTypeDef NVIC_InitStruct;
-    
+
     // Configure the RTC clocks
     rtc_config();
-    
+
     stm32_power_request(STM32_POWER_APB2, RCC_APB2Periph_SYSCFG);
 
     // Setup the wakeup interrupt for later on when we do power management
@@ -54,23 +66,23 @@ void rtc_init(void)
 
     // Enable the RTC Wakeup Interrupt
     RTC_ITConfig(RTC_IT_WUT, ENABLE);
-    
+
     RTC_ClearITPendingBit(RTC_IT_WUT);
     EXTI_ClearITPendingBit(EXTI_Line22);
-    
+
     // Enable Wakeup Counter
     RTC_WakeUpCmd(ENABLE);
-    
+
     stm32_power_release(STM32_POWER_APB2, RCC_APB2Periph_SYSCFG);
 }
 void rtc_config(void)
 {
     RTC_InitTypeDef  RTC_InitStructure;
-    
+
     stm32_power_request(STM32_POWER_APB1, RCC_APB1Periph_PWR);
 
     PWR_BackupAccessCmd(ENABLE); // allow RTC access
-    
+
 #if defined (RTC_CLOCK_SOURCE_LSI)  /* LSI used as RTC source clock*/
     RCC_LSICmd(ENABLE); // enable internal clock
 
@@ -80,7 +92,7 @@ void rtc_config(void)
     }
 
     RCC_RTCCLKConfig(RCC_RTCCLKSource_LSI);
-  
+
     uint32_t uwSynchPrediv = 0xFF;
     uint32_t uwAsynchPrediv = 0x7F;
 
@@ -102,10 +114,10 @@ void rtc_config(void)
 #else
     #error Please select the RTC Clock source inside the main.c file
 #endif
-    
+
     RCC_RTCCLKCmd(ENABLE);
     RTC_WaitForSynchro();
-    
+
     // configure clock prescaler
     RTC_InitStructure.RTC_AsynchPrediv = uwAsynchPrediv;
     RTC_InitStructure.RTC_SynchPrediv = uwSynchPrediv;
@@ -113,16 +125,8 @@ void rtc_config(void)
     RTC_Init(&RTC_InitStructure);
 
     EXTI_ClearITPendingBit(EXTI_Line17);
-    
+
     stm32_power_release(STM32_POWER_APB1, RCC_APB1Periph_PWR);
-}
-
-void hw_get_time_str(char *buf)
-{
-    RTC_TimeTypeDef  RTC_TimeStructure;
-
-    RTC_GetTime(RTC_Format_BIN, &RTC_TimeStructure);
-    snprintf(buf, 12, "%02d:%02d:%02d\n",RTC_TimeStructure.RTC_Hours, RTC_TimeStructure.RTC_Minutes, RTC_TimeStructure.RTC_Seconds);
 }
 
 struct tm *hw_get_time(void)
@@ -138,7 +142,7 @@ struct tm *hw_get_time(void)
     time_now.tm_hour = RTC_TimeStructure.RTC_Hours;
     time_now.tm_min = RTC_TimeStructure.RTC_Minutes;
     time_now.tm_sec = RTC_TimeStructure.RTC_Seconds;
-    
+
     return &time_now;
 }
 
@@ -151,13 +155,13 @@ void hw_set_alarm(struct tm alarm)
 //     RTC_AlarmStructure.RTC_AlarmDateWeekDay = 0x01;
 //     RTC_AlarmStructure.RTC_AlarmDateWeekDaySel = RTC_AlarmDateWeekDaySel_Date;
 //     RTC_AlarmStructure.RTC_AlarmMask = RTC_AlarmMask_DateWeekDay;
-//     
+//
 //     RTC_SetAlarm(RTC_Format_BCD, RTC_Alarm_A, &RTC_AlarmStructure);
-//     
+//
 //     RTC_ITConfig(RTC_IT_ALRA, ENABLE);
 //     RTC_AlarmCmd(RTC_Alarm_A, ENABLE);
 //     RTC_ClearFlag(RTC_FLAG_ALRAF);
-} 
+}
 
 void hw_set_date_time(struct tm date_time)
 {
@@ -166,12 +170,12 @@ void hw_set_date_time(struct tm date_time)
 //     RTC_DateStructure.RTC_Date = 0x11;
 //     RTC_DateStructure.RTC_WeekDay = RTC_Weekday_Saturday;
 //     RTC_SetDate(RTC_Format_BCD, &RTC_DateStructure);
-// 
+//
 //     RTC_TimeStructure.RTC_H12     = RTC_H12_AM;
 //     RTC_TimeStructure.RTC_Hours   = 0x05;
 //     RTC_TimeStructure.RTC_Minutes = 0x20;
 //     RTC_TimeStructure.RTC_Seconds = 0x00;
-// 
+//
 //     RTC_SetTime(RTC_Format_BCD, &RTC_TimeStructure);
 }
 
@@ -181,7 +185,7 @@ void RTC_WKUP_IRQHandler(void)
     if(RTC_GetITStatus(RTC_IT_WUT) != RESET)
     {
         RTC_ClearITPendingBit(RTC_IT_WUT);
-        DRV_LOG("RTC", APP_LOG_LEVEL_DEBUG, "RTC WAKE IRQ");
+//         DRV_LOG("RTC", APP_LOG_LEVEL_DEBUG, "RTC WAKE IRQ");
         EXTI_ClearITPendingBit(EXTI_Line22);
-    } 
+    }
 }

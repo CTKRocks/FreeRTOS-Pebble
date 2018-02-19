@@ -12,11 +12,13 @@
 #include <stm32f2xx_usart.h>
 #include <stm32f2xx_gpio.h>
 #include <stm32f2xx_spi.h>
+#include <stm32f2xx_iwdg.h>
 #include <stm32f2xx_rcc.h>
 #include <stm32f2xx_syscfg.h>
 #include <misc.h>
 
 #include "stm32_power.h"
+#include "stm32_rtc.h"
 
 extern void *strcpy(char *a2, const char *a1);
 
@@ -103,9 +105,38 @@ void platform_init_late() {
 /*** watchdog timer ***/
 
 void hw_watchdog_init() {
+    IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+    IWDG_SetPrescaler(IWDG_Prescaler_64);
+    IWDG_SetReload(0xFFF);
+    IWDG_WriteAccessCmd(IWDG_WriteAccess_Disable);
+    IWDG_Enable();
+    IWDG_ReloadCounter();
 }
 
 void hw_watchdog_reset() {
+    /* We're exceedingly careful in this.  We turn on GPIO clocks, read the
+     * GPIO to see if the back button is not pressed, read the GPIO clock
+     * register to see if we got into trouble, and if and only if we meet
+     * all of those, we feed the watchdog.  */
+    
+    stm32_power_request(STM32_POWER_AHB1, RCC_AHB1Periph_GPIOC);
+    
+    if (!(GPIOC->IDR & (1 << 3))) /* pressed? */
+        goto nofeed;
+    if ((GPIOC->MODER & (0x3 << (3 * 2))) != (0x0 << (3 * 2)))
+        goto nofeed;
+    if ((GPIOC->PUPDR & (0x3 << (3 * 2))) != (0x1 << (3 * 2)))
+        goto nofeed;
+    
+    if (!(RCC->AHB1ENR & RCC_AHB1ENR_GPIOCEN)) /* GPIOC clocks? */
+        goto nofeed;
+    if (RCC->AHB1RSTR & RCC_AHB1RSTR_GPIOCRST) /* in reset? */
+        goto nofeed;
+
+    IWDG_ReloadCounter();
+    
+nofeed:
+    stm32_power_release(STM32_POWER_AHB1, RCC_AHB1Periph_GPIOC);
 }
 
 /*** ambient light sensor ***/
@@ -225,7 +256,7 @@ void hw_display_start_frame(uint8_t x, uint8_t y) {
     delay_us(7);
     _display_write(0x80);
     for (int i = 0; i < 168; i++) {
-        _display_write(__RBIT(__REV(167-i)));
+        _display_write(__RBIT(__REV(168-i)));
         for (int j = 0; j < 18; j++)
             _display_write(_display_fb[i][17-j]);
         _display_write(0);
@@ -256,31 +287,6 @@ uint8_t hw_display_get_state() {
 //         _display_fb[y][17 - (x / 8)] &= ~(0x80 >> (x % 8));
 // }
 
-/* rtc */
-
-void rtc_init() {
-}
-
-void rtc_config() {
-}
-
-void hw_get_time_str(char *buf) {
-    strcpy(buf, "buttsquid");
-}
-
-#include <time.h>
-static struct tm _tm;
-struct tm *hw_get_time() {
-    return &_tm;
-}
-
-void rtc_set_timer_interval(TimeUnits tick_units)
-{
-}
-
-void rtc_disable_timer_interval(void)
-{
-}
 /* vibrate */
 
 void hw_vibrate_init() {
@@ -299,7 +305,7 @@ void hw_vibrate_enable(uint8_t enabled) {
 
 #define JEDEC_RDSR_BUSY 0x01
 
-#define JEDEC_IDCODE_MICRON_N25Q032A11 0x20BB16
+#define JEDEC_IDCODE_MICRON_N25Q032A11 0x20BB16 /* bianca / qemu / ev2_5 */
 
 static uint8_t _hw_flash_txrx(uint8_t c) {
     while (!(SPI1->SR & SPI_SR_TXE))
@@ -367,7 +373,7 @@ void hw_flash_init(void) {
     
     stm32_power_request(STM32_POWER_APB2, RCC_APB2Periph_SPI1);
 
-    SPI_I2S_DeInit(SPI2);
+    SPI_I2S_DeInit(SPI1);
     
     spiinit.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
     spiinit.SPI_Mode = SPI_Mode_Master;
@@ -378,8 +384,8 @@ void hw_flash_init(void) {
     spiinit.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;
     spiinit.SPI_FirstBit = SPI_FirstBit_MSB;
     spiinit.SPI_CRCPolynomial = 7 /* Um. */;
-    SPI_Init(SPI2, &spiinit);
-    SPI_Cmd(SPI2, ENABLE);
+    SPI_Init(SPI1, &spiinit);
+    SPI_Cmd(SPI1, ENABLE);
     
     /* In theory, SPI is up.  Now let's see if we can talk to the part. */
     _hw_flash_enable(1);
@@ -405,7 +411,6 @@ void hw_flash_init(void) {
     }
     
     stm32_power_release(STM32_POWER_APB2, RCC_APB2Periph_SPI1);
-
 }
 
 

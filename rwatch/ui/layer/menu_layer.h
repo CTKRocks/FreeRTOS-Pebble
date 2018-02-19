@@ -67,11 +67,11 @@ typedef void (*MenuLayerDrawSeparatorCallback)(GContext *ctx, const Layer *layer
 
 typedef void (*MenuLayerSelectCallback)(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *context);
 
-typedef void (*MenuLayerSelectionChangedCallback)(struct MenuLayer *menu_layer, MenuIndex new_index,
-                                                  MenuIndex old_index, void *context);
+typedef void (*MenuLayerSelectionChangedCallback)(struct MenuLayer *menu_layer, MenuIndex *new_index,
+                                                  MenuIndex *old_index, void *context);
 
 typedef void (*MenuLayerSelectionWillChangeCallback)(struct MenuLayer *menu_layer, MenuIndex *new_index,
-                                                     MenuIndex old_index, void *context);
+                                                     MenuIndex *old_index, void *context);
 
 typedef struct MenuLayerCallbacks
 {
@@ -100,8 +100,8 @@ typedef struct MenuSection
 
 typedef struct MenuLayer
 {
-  ScrollLayer *scroll_layer;
-  Layer *layer; // content layer - all items are drawn here
+  Layer layer; // content layer - all items are drawn here
+  ScrollLayer scroll_layer;
   struct MenuLayerCallbacks callbacks;
   ClickConfigProvider click_config_provider; // additional click provider for clients
   void *context;
@@ -123,6 +123,8 @@ typedef struct MenuLayer
   bool is_reload_scheduled;
 } MenuLayer;
 
+void menu_layer_ctor(MenuLayer *mlayer, GRect frame);
+void menu_layer_dtor(MenuLayer *menu);
 
 MenuLayer *menu_layer_create(GRect frame);
 
