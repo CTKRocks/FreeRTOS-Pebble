@@ -30,9 +30,10 @@ typedef struct TimelineEvent {
   char *description;
   Date date;
   uint16_t *image;
+  GColor color;
 } TimelineEvent;
 
-#define TimelineEvent(name, description, date, image) ((TimelineEvent) { name, description, date, (int *) image })
+#define TimelineEvent(name, description, date, image, color) ((TimelineEvent) { name, description, date, (int *) image, color })
 
 typedef struct TimelineEvents {
   TimelineEvent *events;

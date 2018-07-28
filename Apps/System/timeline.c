@@ -117,11 +117,8 @@ static void timeline_update_proc(Layer *layer, GContext *ctx) {
 
   if (timeline) {
     // TIMELINE UI
-    graphics_context_set_fill_color(ctx, GColorRed);
+    graphics_context_set_fill_color(ctx, event->color);
     graphics_fill_rect(ctx, GRect(frame.size.w - 25, 0, 25, frame.size.h), 0, GCornerNone);
-
-    graphics_context_set_fill_color(ctx, GColorRed);
-
     n_gpath_fill(ctx, n_gpath_create(&triangle));
 
     graphics_draw_text(ctx, event->name, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), GRect(frame.origin.x, frame.origin.y, frame.size.w - 25, 36), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
@@ -151,7 +148,7 @@ static void timeline_update_proc(Layer *layer, GContext *ctx) {
       for (int i = 0; i < ((TimelineEvents *) s_events)->count; i++) {
         Date date = s_events->events[i].date;
         if ((int)date.date == (day - (s_day_offset - 1)) && (int)date.month == s_month && (int)date.year == s_year) {
-          graphics_context_set_fill_color(ctx, GColorRed);
+          graphics_context_set_fill_color(ctx, s_events->events[i].color);
           graphics_context_set_text_color(ctx, GColorWhite);
           break;
         } else {
@@ -159,7 +156,7 @@ static void timeline_update_proc(Layer *layer, GContext *ctx) {
           graphics_context_set_text_color(ctx, GColorBlack);
         }
       }
-      graphics_context_set_stroke_color(ctx, day - s_day_offset == s_selected ? GColorRed : GColorWhite);
+      graphics_context_set_stroke_color(ctx, day - s_day_offset == s_selected ? GColorBlack : GColorWhite);
 
       if (day < s_day_offset) {
         graphics_context_set_fill_color(ctx, GColorWhite);
@@ -203,9 +200,9 @@ static void timeline_window_load(Window *window) {
   GRect bounds = layer_get_frame(window_layer);
 
   s_events = timeline_events_create(3);
-  timeline_events_add(s_events, TimelineEvent("RWS Launch\n5:00pm", "Organizer: Katharine Berry\nInvitees: Rebblers\n\nEveryone will be there. You should too!", Date(1, 1, 2018), RESOURCE_ID_CLOCK));
-  timeline_events_add(s_events, TimelineEvent("Meeting\n6:00pm", "Other content", Date(10, 1, 2018), RESOURCE_ID_SPANNER));
-  timeline_events_add(s_events, TimelineEvent("RebbleOS\n7:00pm", "This is a ways away", Date(23, 1, 2018), RESOURCE_ID_SPEECH_BUBBLE));
+  timeline_events_add(s_events, TimelineEvent("RWS Launch\n5:00pm", "Organizer: Katharine Berry\nInvitees: Rebblers\n\nEveryone will be there. You should too!", Date(1, 1, 2018), RESOURCE_ID_CLOCK, GColorRed));
+  timeline_events_add(s_events, TimelineEvent("Meeting\n6:00pm", "Other content", Date(10, 1, 2018), RESOURCE_ID_SPANNER, GColorVividCerulean));
+  timeline_events_add(s_events, TimelineEvent("RebbleOS\n7:00pm", "This is a ways away", Date(23, 1, 2018), RESOURCE_ID_SPEECH_BUBBLE, GColorIslamicGreen));
 
   s_day_count = days_in_month(s_month, s_year);
   printf("\n\nDAYS IN MONTH: %d\n\n", s_day_count);
