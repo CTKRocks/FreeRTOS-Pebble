@@ -181,11 +181,11 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
   if (timeline) {
     // TIMELINE UI
     if (index->row == selected.row) {
-      s_timeline->callback_data = (void *) selected.row;
+      s_timeline->callback_data = &selected.row;
     }
   } else {
     // CALENDAR UI
-    s_timeline->callback_data = (void *) index->row;
+    s_timeline->callback_data = &index->row;
   }
 }
 
@@ -205,7 +205,6 @@ static void timeline_window_load(Window *window) {
   timeline_events_add(s_events, TimelineEvent("RebbleOS\n7:00pm", "This is a ways away", Date(23, 1, 2018), RESOURCE_ID_SPEECH_BUBBLE, GColorIslamicGreen));
 
   s_day_count = days_in_month(s_month, s_year);
-  printf("\n\nDAYS IN MONTH: %d\n\n", s_day_count);
   s_day_offset = zeller(0, s_month - 1, s_year);
 
   s_menu_layer = menu_layer_create(bounds);

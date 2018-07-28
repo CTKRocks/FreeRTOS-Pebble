@@ -33,7 +33,7 @@ typedef struct TimelineEvent {
   GColor color;
 } TimelineEvent;
 
-#define TimelineEvent(name, description, date, image, color) ((TimelineEvent) { name, description, date, (int *) image, color })
+#define TimelineEvent(name, description, date, image, color) ((TimelineEvent) { name, description, date, (uint16_t *) image, color })
 
 typedef struct TimelineEvents {
   TimelineEvent *events;
