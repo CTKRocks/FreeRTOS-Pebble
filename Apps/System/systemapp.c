@@ -100,8 +100,9 @@ static void systemapp_window_load(Window *window)
 
     menu_set_click_config_onto_window(s_menu, window);
 
-    MenuItems *items = menu_items_create(5);
+    MenuItems *items = menu_items_create(6);
     menu_items_add(items, MenuItem("Watchfaces", "All your faces", RESOURCE_ID_CLOCK, watch_list_item_selected));
+    menu_items_add(items, MenuItem("Timeline", "RWS Goes Live", RESOURCE_ID_CLOCK, app_item_selected));
     menu_items_add(items, MenuItem("Settings", "Config", RESOURCE_ID_SPANNER, settings_item_selected));
     menu_items_add(items, MenuItem("Tests", NULL, RESOURCE_ID_CLOCK, run_test_item_selected));
     menu_items_add(items, MenuItem("Notifications", NULL, RESOURCE_ID_SPEECH_BUBBLE, notification_item_selected));

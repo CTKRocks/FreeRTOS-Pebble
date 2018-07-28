@@ -2,7 +2,7 @@
  * Routines for dealing with scanning and reading of
  * internal apps and apps on flash
  * RebbleOS
- * 
+ *
  * Author: Barry Carter <barry.carter@gmail.com>.
  */
 
@@ -11,6 +11,7 @@
 #include "appmanager.h"
 #include "systemapp.h"
 #include "test.h"
+#include "timeline.h"
 #include "notification.h"
 #include "test_defs.h"
 
@@ -40,7 +41,7 @@ struct appdb
     uint32_t value_length:11;
 
     uint32_t application_id;
-    
+
     Uuid app_uuid;  // 16 bytes
     uint32_t flags; /* pebble_process_info.h, PebbleProcessInfoFlags in the SDK */
     uint32_t icon;
@@ -60,7 +61,7 @@ static App *_app_manifest_head;
 void appmanager_app_loader_init()
 {
     struct file empty = { 0, 0, 0 }; /* TODO: make files optional in `App` to avoid this */
-    
+
     /* add the baked in apps */
     _appmanager_add_to_manifest(_appmanager_create_app("System", APP_TYPE_SYSTEM, systemapp_main, true, &empty, &empty));
     _appmanager_add_to_manifest(_appmanager_create_app("Simple", APP_TYPE_FACE, simple_main, true, &empty, &empty));
@@ -68,16 +69,17 @@ void appmanager_app_loader_init()
     _appmanager_add_to_manifest(_appmanager_create_app("Settings", APP_TYPE_SYSTEM, test_main, true, &empty, &empty));
     _appmanager_add_to_manifest(_appmanager_create_app("Notification", APP_TYPE_SYSTEM, notif_main, true, &empty, &empty));
     _appmanager_add_to_manifest(_appmanager_create_app("TestApp", APP_TYPE_SYSTEM, testapp_main, true, &empty, &empty));
-    
+    _appmanager_add_to_manifest(_appmanager_create_app("Timeline", APP_TYPE_SYSTEM, timeline_main, true, &empty, &empty));
+
     /* now load the ones on flash */
     _appmanager_flash_load_app_manifest();
 }
 
 
 /*
- * 
+ *
  * Generate an entry in the application manifest for each found app.
- * 
+ *
  */
 static App *_appmanager_create_app(char *name, uint8_t type, void *entry_point, bool is_internal,
                                    const struct file *app_file, const struct file *resource_file)
@@ -85,12 +87,12 @@ static App *_appmanager_create_app(char *name, uint8_t type, void *entry_point, 
     App *app = calloc(1, sizeof(App));
     if (app == NULL)
         return NULL;
-        
+
     app->name = calloc(1, strlen(name) + 1);
-    
+
     if (app->name == NULL)
         return NULL;
-    
+
     strcpy(app->name, name);
     app->main = (void*)entry_point;
     app->type = type;
@@ -99,7 +101,7 @@ static App *_appmanager_create_app(char *name, uint8_t type, void *entry_point, 
     app->app_file = *app_file;
     app->resource_file = *resource_file;
     app->is_internal = is_internal;
-    
+
     return app;
 }
 
@@ -143,10 +145,10 @@ static void _appmanager_flash_load_app_manifest(void)
             KERN_LOG("app", APP_LOG_LEVEL_WARNING, "appdb: file that is not written before eof, at index %d", i);
             continue;
         }
-        
+
         if ((appdb.dbflags & APPDB_DBFLAGS_DEAD) == 0)
             continue;
-        
+
         if ((appdb.dbflags & APPDB_DBFLAGS_OVERWRITING) == 0)
             KERN_LOG("app", APP_LOG_LEVEL_WARNING, "appdb: file %08x is mid-overwrite; I feel nervous", appdb.application_id);
 
@@ -154,7 +156,7 @@ static void _appmanager_flash_load_app_manifest(void)
             KERN_LOG("app", APP_LOG_LEVEL_WARNING, "appdb: file is written, but has no contents?");
             break;
         }
-        
+
         snprintf(buffer, 14, "@%08lx/app", appdb.application_id);
         if (fs_find_file(&app_file, buffer) < 0)
             continue;
@@ -167,15 +169,15 @@ static void _appmanager_flash_load_app_manifest(void)
 
         if (fs_read(&app_fd, &header, sizeof(ApplicationHeader)) != sizeof(ApplicationHeader))
             break;
-       
+
         /* sanity check the hell out of this to make sure it's a real app */
         if (strncmp(header.header, "PBLAPP", 6))
         {
             KERN_LOG("app", APP_LOG_LEVEL_ERROR, "No PBLAPP header!");
             continue;
         }
-        
-        
+
+
         /* it's real... so far. Lets crc check to make sure
             * TODO
             * crc32....(header.header)
@@ -192,23 +194,23 @@ static void _appmanager_flash_load_app_manifest(void)
     }
 }
 
-/* 
- * App manifest is a linked list. Just slot it in 
+/*
+ * App manifest is a linked list. Just slot it in
  */
 static void _appmanager_add_to_manifest(App *app)
-{  
+{
     if (_app_manifest_head == NULL)
     {
         _app_manifest_head = app;
         return;
     }
-    
+
     App *child = _app_manifest_head;
-    
+
     // now find the last node
     while(child->next)
         child = child->next;
-    
+
     // link the node to the last child
     child->next = app;
 }
@@ -228,7 +230,7 @@ App *appmanager_get_app(char *app_name)
 {
     // find the app
     App *node = _app_manifest_head;
-    
+
     // now find the matching
     while(node)
     {
@@ -240,7 +242,7 @@ App *appmanager_get_app(char *app_name)
 
         node = node->next;
     }
-    
+
     KERN_LOG("app", APP_LOG_LEVEL_ERROR, "NO App Found %s", app_name);
     return NULL;
 }
